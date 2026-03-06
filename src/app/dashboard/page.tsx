@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MessageSquare, TrendingUp, CheckCircle } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getDashboardStats() {
     const [totalLeads, newLeadsThisMonth, totalMessages, wonLeads] =
         await Promise.all([
