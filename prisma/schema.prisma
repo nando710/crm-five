@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ============================================================
+// FUNIL DE VENDAS
+// ============================================================
+
+model Stage {
+  id       String @id @default(cuid())
+  name     String
+  order    Int
+  color    String @default("#6366f1")
+  leads    Lead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// LEAD (Contato + oportunidade de venda)
+// ============================================================
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String?  @unique // E.164 format, e.g. 5511999999999
+  email       String?
+  company     String?
+  notes       String?
+  stageId     String
+  stage       Stage    @relation(fields: [stageId], references: [id])
+  messages    Message[]
+  tags        Tag[]
+  stageHistory StageHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// MENSAGENS WHATSAPP (via Evolution API)
+// ============================================================
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
+  STICKER
+  VIEW_ONCE
+}
+
+model Message {
+  id          String           @id @default(cuid())
+  evolutionId String?          @unique // ID da mensagem na Evolution API
+  leadId      String
+  lead        Lead             @relation(fields: [leadId], references: [id])
+  direction   MessageDirection
+  type        MessageType      @default(TEXT)
+  content     String           // texto ou URL da mídia
+  mediaUrl    String?
+  isRead      Boolean          @default(false)
+  sentAt      DateTime         @default(now())
+
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// TAGS PARA SEGMENTAÇÃO
+// ============================================================
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String @default("#64748b")
+  leads Lead[]
+
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// HISTÓRICO DE MOVIMENTAÇÃO NO FUNIL
+// ============================================================
+
+model StageHistory {
+  id          String  @id @default(cuid())
+  leadId      String
+  lead        Lead    @relation(fields: [leadId], references: [id])
+  fromStageId String?
+  toStageId   String
+  movedAt     DateTime @default(now())
+}
